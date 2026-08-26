@@ -1,0 +1,538 @@
+@charset "UTF-8";
+/*!
+ * TOIAF Network — Concierge dock
+ *
+ * One floating surface at bottom-right carrying Messages, Activity (every
+ * notification) and the existing AI concierge as tabs.
+ *
+ * Three things already compete for that corner on the live site:
+ *   #toiaf-ux-notify-stack   right:18px bottom:18px  z-index: 999999
+ *   .toiaf-mcc--floating     right:22px bottom:22px  z-index:  99999
+ *   /messages/               its own page entirely
+ *
+ * The toast stack currently renders *over* the concierge orb. This file
+ * resolves that: the dock owns the corner, toasts are lifted to stack above
+ * it, and the concierge is hosted inside the dock through the plugin's own
+ * `.toiaf-mcc--inline` variant rather than being re-implemented.
+ */
+
+:root {
+  --toiaf-dock-right: 22px;
+  --toiaf-dock-bottom: 22px;
+  /* Height of the collapsed launcher plus breathing room. Toasts clear it. */
+  --toiaf-dock-clearance: 74px;
+}
+
+/* Lift the toast stack so notifications never sit on top of the launcher.
+   Toasts stay above the dock in z-order — they just start higher up. */
+body.toiaf-has-dock #toiaf-ux-notify-stack {
+  bottom: calc(var(--toiaf-dock-bottom) + var(--toiaf-dock-clearance));
+}
+
+/* The standalone concierge orb is redundant once the dock hosts it. */
+body.toiaf-has-dock .toiaf-mcc--floating { display: none; }
+
+/* ==========================================================================
+   Shell
+   ========================================================================== */
+
+.toiaf-dock {
+  --dk-purple: #8e2bff;
+  --dk-pink:   #ff2bd6;
+  --dk-lime:   #b6ff00;
+  --dk-aqua:   #24f0ff;
+  --dk-orange: #ff8531;
+  --dk-red:    #ff3737;
+
+  --dk-s0: #000000;
+  --dk-s1: #08070c;
+  --dk-s2: #0e0d15;
+  --dk-s3: #16141f;
+
+  --dk-ink-1: #ffffff;
+  --dk-ink-2: rgba(255, 255, 255, 0.72);
+  --dk-ink-3: rgba(255, 255, 255, 0.46);
+  --dk-ink-4: rgba(255, 255, 255, 0.26);
+
+  --dk-line: rgba(255, 255, 255, 0.10);
+  --dk-line-strong: rgba(142, 43, 255, 0.34);
+
+  --dk-display: var(--toiaf-font-heading, 'Orbitron', sans-serif);
+  --dk-body: var(--toiaf-font-body, 'Azeret Mono', ui-monospace, monospace);
+
+  --dk-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  position: fixed;
+  right: var(--toiaf-dock-right);
+  bottom: var(--toiaf-dock-bottom);
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  font-family: var(--dk-body);
+  color: var(--dk-ink-1);
+}
+
+/* ==========================================================================
+   Launcher
+   ========================================================================== */
+
+.toiaf-dock__launcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 46px;
+  padding: 0 16px 0 12px;
+  border: 1px solid var(--dk-purple);
+  border-radius: 999px;
+  background: var(--dk-s0);
+  color: var(--dk-lime);
+  font-family: var(--dk-display);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 0 0 1px rgba(142, 43, 255, 0.18), 0 8px 34px rgba(142, 43, 255, 0.35);
+  transition: transform 0.15s var(--dk-ease), box-shadow 0.15s var(--dk-ease);
+}
+.toiaf-dock__launcher:hover,
+.toiaf-dock__launcher:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 0 0 1px rgba(255, 43, 214, 0.3), 0 10px 42px rgba(255, 43, 214, 0.45);
+  outline: none;
+}
+.toiaf-dock.is-open .toiaf-dock__launcher { display: none; }
+
+/* The orb mark mirrors the concierge plugin's, so the dock reads as the same
+   object the site already had rather than a second one. */
+.toiaf-dock__mark {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, #000 58%, transparent 59%),
+    conic-gradient(from 0deg, var(--dk-aqua), var(--dk-pink), var(--dk-purple), var(--dk-aqua));
+  color: var(--dk-pink);
+  font-size: 10px;
+}
+
+.toiaf-dock__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--dk-pink);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+.toiaf-dock__count[hidden],
+.toiaf-dock__count:empty { display: none; }
+
+/* A quiet pulse only while something is genuinely unread. */
+.toiaf-dock.has-unread .toiaf-dock__launcher {
+  animation: toiaf-dock-pulse 2.6s var(--dk-ease) infinite;
+}
+@keyframes toiaf-dock-pulse {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(142, 43, 255, 0.18), 0 8px 34px rgba(142, 43, 255, 0.35); }
+  50%      { box-shadow: 0 0 0 1px rgba(255, 43, 214, 0.5),  0 8px 40px rgba(255, 43, 214, 0.5); }
+}
+
+/* ==========================================================================
+   Panel
+   ========================================================================== */
+
+.toiaf-dock__panel {
+  display: none;
+  flex-direction: column;
+  width: min(392px, calc(100vw - 28px));
+  height: min(78vh, 660px);
+  overflow: hidden;
+  border: 1px solid var(--dk-line-strong);
+  border-radius: 16px;
+  background: var(--dk-s0);
+  box-shadow: 0 0 0 1px rgba(142, 43, 255, 0.15), 0 18px 56px rgba(0, 0, 0, 0.7);
+}
+.toiaf-dock.is-open .toiaf-dock__panel {
+  display: flex;
+  animation: toiaf-dock-in 0.22s var(--dk-ease);
+}
+@keyframes toiaf-dock-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.985); }
+  to   { opacity: 1; transform: none; }
+}
+
+.toiaf-dock__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--dk-line);
+  background: linear-gradient(180deg, rgba(142, 43, 255, 0.12), transparent), var(--dk-s0);
+}
+.toiaf-dock__title {
+  margin: 0;
+  font-family: var(--dk-display);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--dk-ink-1);
+}
+.toiaf-dock__head-actions { margin-left: auto; display: flex; gap: 6px; }
+.toiaf-dock__icon-btn {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--dk-line);
+  border-radius: 8px;
+  background: var(--dk-s0);
+  color: var(--dk-ink-3);
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: none;
+}
+.toiaf-dock__icon-btn:hover { color: var(--dk-ink-1); border-color: var(--dk-pink); }
+
+/* --- Tabs --------------------------------------------------------------- */
+
+.toiaf-dock__tabs {
+  display: flex;
+  flex-shrink: 0;
+  gap: 2px;
+  padding: 8px 8px 0;
+  border-bottom: 1px solid var(--dk-line);
+  background: var(--dk-s1);
+}
+.toiaf-dock__tab {
+  position: relative;
+  flex: 1 1 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 8px 8px 0 0;
+  background: transparent;
+  color: var(--dk-ink-3);
+  font-family: var(--dk-display);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 0.16s var(--dk-ease), background 0.16s var(--dk-ease);
+}
+.toiaf-dock__tab:hover { color: var(--dk-ink-1); background: rgba(255, 255, 255, 0.04); }
+.toiaf-dock__tab[aria-selected="true"] { color: var(--dk-ink-1); background: var(--dk-s0); }
+.toiaf-dock__tab[aria-selected="true"]::after {
+  content: "";
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--dk-pink);
+}
+.toiaf-dock__tab[hidden] { display: none; }
+
+.toiaf-dock__tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--dk-purple);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+.toiaf-dock__tab-count[hidden],
+.toiaf-dock__tab-count:empty { display: none; }
+.toiaf-dock__tab[data-tab="messages"] .toiaf-dock__tab-count { background: var(--dk-pink); }
+
+/* --- Panes -------------------------------------------------------------- */
+
+.toiaf-dock__body { flex: 1 1 auto; min-height: 0; display: flex; }
+.toiaf-dock__pane {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: none;
+  flex-direction: column;
+}
+.toiaf-dock__pane[data-active] { display: flex; }
+.toiaf-dock__scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--dk-s3) transparent;
+}
+
+/* ==========================================================================
+   Activity — every notification, with a durable home
+   Priority accents match toiaf-ux-notification-center's toast levels, so a
+   toast and its archived row read as the same event.
+   ========================================================================== */
+
+.toiaf-dock__group {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 10px 14px 6px;
+  background: linear-gradient(180deg, var(--dk-s0) 70%, transparent);
+  font-family: var(--dk-display);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--dk-ink-4);
+}
+
+.toiaf-dock__note {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 10px;
+  padding: 11px 14px;
+  border-left: 3px solid transparent;
+  color: inherit;
+  text-decoration: none;
+  transition: background 0.14s var(--dk-ease);
+}
+.toiaf-dock__note:hover { background: rgba(255, 255, 255, 0.04); }
+.toiaf-dock__note.is-unread { background: rgba(142, 43, 255, 0.08); border-left-color: var(--dk-purple); }
+
+.toiaf-dock__note-icon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 14px;
+}
+.toiaf-dock__note-text { min-width: 0; display: grid; gap: 2px; }
+.toiaf-dock__note-title {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--dk-ink-1);
+}
+.toiaf-dock__note-body {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--dk-ink-3);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.toiaf-dock__note-time {
+  font-size: 10px;
+  color: var(--dk-ink-4);
+  white-space: nowrap;
+}
+
+/* Money events read lime; the amount is the point of the row. */
+.toiaf-dock__note-amount {
+  font-family: var(--dk-display);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--dk-lime);
+  white-space: nowrap;
+}
+
+.toiaf-dock__note[data-kind="tip"]        .toiaf-dock__note-icon { background: rgba(182, 255, 0, 0.14); }
+.toiaf-dock__note[data-kind="unlock"]     .toiaf-dock__note-icon { background: rgba(255, 43, 214, 0.16); }
+.toiaf-dock__note[data-kind="subscriber"] .toiaf-dock__note-icon { background: rgba(182, 255, 0, 0.14); }
+.toiaf-dock__note[data-kind="booking"]    .toiaf-dock__note-icon { background: rgba(36, 240, 255, 0.14); }
+.toiaf-dock__note[data-kind="custom"]     .toiaf-dock__note-icon { background: rgba(255, 133, 49, 0.16); }
+.toiaf-dock__note[data-kind="payout"]     .toiaf-dock__note-icon { background: rgba(182, 255, 0, 0.14); }
+
+.toiaf-dock__note[data-priority="high"]     { border-left-color: var(--dk-lime); }
+.toiaf-dock__note[data-priority="critical"] { border-left-color: var(--dk-red); background: rgba(255, 55, 55, 0.07); }
+.toiaf-dock__note[data-priority="critical"] .toiaf-dock__note-title { color: #ffd9d9; }
+
+/* ==========================================================================
+   Messages pane — compact list, then a compact thread
+   ========================================================================== */
+
+.toiaf-dock__conv {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.14s var(--dk-ease);
+}
+.toiaf-dock__conv:hover { background: rgba(255, 255, 255, 0.04); }
+.toiaf-dock__conv.is-unread { background: rgba(255, 43, 214, 0.07); }
+.toiaf-dock__avatar {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--dk-s3);
+}
+.toiaf-dock__avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.toiaf-dock__conv[data-presence="online"] .toiaf-dock__avatar::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  border: 2px solid var(--dk-s0);
+  background: var(--dk-lime);
+}
+.toiaf-dock__conv-text { min-width: 0; display: grid; gap: 2px; }
+.toiaf-dock__conv-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--dk-ink-1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.toiaf-dock__conv-preview {
+  font-size: 11px;
+  color: var(--dk-ink-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.toiaf-dock__conv.is-unread .toiaf-dock__conv-preview { color: var(--dk-ink-1); font-weight: 600; }
+
+/* Back affordance when a thread is open inside the dock */
+.toiaf-dock__back {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  background: transparent;
+  color: var(--dk-ink-3);
+  font-family: var(--dk-display);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 0;
+}
+.toiaf-dock__back:hover { color: var(--dk-ink-1); }
+.toiaf-dock.is-thread .toiaf-dock__back { display: inline-flex; }
+.toiaf-dock.is-thread .toiaf-dock__tabs { display: none; }
+
+/* ==========================================================================
+   Concierge pane — hosts the plugin's own inline variant, unmodified
+   ========================================================================== */
+
+.toiaf-dock__pane[data-pane="concierge"] .toiaf-mcc--inline,
+.toiaf-dock__pane[data-pane="concierge"] .toiaf-mcc__panel {
+  width: 100%;
+  max-height: none;
+  height: 100%;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* ==========================================================================
+   Empty + loading
+   ========================================================================== */
+
+.toiaf-dock__empty {
+  margin: auto;
+  display: grid;
+  justify-items: center;
+  gap: 7px;
+  padding: 34px 22px;
+  text-align: center;
+}
+.toiaf-dock__empty-icon {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border: 1px solid var(--dk-line);
+  border-radius: 999px;
+  background: var(--dk-s2);
+  font-size: 19px;
+}
+.toiaf-dock__empty-title {
+  font-family: var(--dk-display);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--dk-ink-2);
+}
+.toiaf-dock__empty-body { margin: 0; font-size: 11px; line-height: 1.6; color: var(--dk-ink-4); }
+
+.toiaf-dock__skeleton { padding: 14px; display: grid; gap: 12px; }
+.toiaf-dock__skeleton i {
+  display: block;
+  height: 42px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, var(--dk-s2), var(--dk-s3), var(--dk-s2));
+  background-size: 200% 100%;
+  animation: toiaf-dock-shimmer 1.3s linear infinite;
+}
+@keyframes toiaf-dock-shimmer {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+
+/* ==========================================================================
+   Fit + a11y
+   ========================================================================== */
+
+/* On /messages/ the Messages tab would just point at the page you are on.
+   The dock stays for Activity and Concierge. */
+body.toiaf-messages .toiaf-dock__tab[data-tab="messages"] { display: none; }
+
+@media (max-width: 560px) {
+  .toiaf-dock { right: 12px; bottom: 12px; left: 12px; align-items: stretch; }
+  .toiaf-dock__panel { width: 100%; height: min(82vh, 620px); }
+  .toiaf-dock__launcher { align-self: flex-end; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toiaf-dock *, .toiaf-dock *::before, .toiaf-dock *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .toiaf-dock.has-unread .toiaf-dock__launcher { animation: none; }
+}
+
+.toiaf-dock :where(button, a, input, textarea):focus-visible {
+  outline: 2px solid var(--dk-aqua);
+  outline-offset: 2px;
+}
+
+@media print { .toiaf-dock { display: none; } }
