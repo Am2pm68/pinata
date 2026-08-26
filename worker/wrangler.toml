@@ -1,0 +1,77 @@
+# TOiAF stream.npntoi LIVE auto-post control plane.
+#
+# Gates default to "0" (OFF) everywhere. Nothing leaves this Worker until an
+# operator turns a channel on AND the runtime kill switch is clear. See
+# docs/LIVE_AUTOPOST.md for the deploy/canary order.
+
+name = "toiaf-live-autopost"
+main = "src/index.ts"
+compatibility_date = "2026-08-01"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "toiaf_live_autopost"
+database_id = "REPLACE_WITH_D1_ID"
+migrations_dir = "migrations"
+
+[[queues.producers]]
+binding = "OUTBOUND"
+queue = "toiaf-live-outbound"
+
+[[queues.consumers]]
+queue = "toiaf-live-outbound"
+max_batch_size = 10
+max_batch_timeout = 5
+max_retries = 5
+dead_letter_queue = "toiaf-live-outbound-dlq"
+
+[triggers]
+crons = ["* * * * *"]
+
+[vars]
+# --- Channel gates. Fail closed: only "1" enables a channel. ---
+TOIAF_ALLOW_AUTO_LIVE_X = "0"
+TOIAF_ALLOW_AUTO_LIVE_TELEGRAM = "0"
+TOIAF_ALLOW_AUTO_LIVE_BLUESKY = "0"
+# Free fallback: queue a one-tap manual composer instead of an API send.
+TOIAF_ALLOW_MANUAL_X_FALLBACK = "1"
+
+# --- Live detection / flap suppression ---
+LIVE_CONFIRM_CHECKS = "2"
+LIVE_CONFIRM_SECONDS = "90"
+OFFLINE_CONFIRM_CHECKS = "3"
+OFFLINE_GRACE_SECONDS = "300"
+
+# --- Scheduling ---
+REMINDER_LEAD_MINUTES = "60"
+ANNOUNCE_LEAD_MINUTES = "0"          # 0 disables the optional pre-show announcement
+SCHEDULE_DUE_TOLERANCE_SECONDS = "900"
+MIN_SESSION_INTERVAL_MINUTES = "180"
+DEDUPE_WINDOW_DAYS = "14"
+
+# --- Public surfaces ---
+PUBLIC_ORIGIN = "https://toiaf.com"
+STREAM_ORIGIN = "https://stream.npntoi.com"
+GO_LINK_ORIGIN = "https://toiaf.com"
+PUBLIC_ASSET_ALLOWED_HOSTS = "cdn.toiaf.com,promo.toiaf.com"
+
+# --- Provider (StripCash Aggregators API, via Worker; never HTML scraping) ---
+PROVIDER_NAME = "stripcash"
+PROVIDER_API_BASE = "https://go.xxxjmp.com/api/models"
+PROVIDER_PAGE_LIMIT = "500"
+
+# --- X budget guard (pay-per-use; verify live Console rates before enabling) ---
+X_COST_PER_POST_USD = "0.015"
+X_COST_PER_POST_WITH_URL_USD = "0.200"
+X_MONTHLY_BUDGET_USD = "0"           # 0 = no budget provisioned => X API sends fail closed
+
+# --- Broadcaster hand-off (existing toiaf-drop-broadcaster) ---
+BROADCASTER_MODE = "direct"          # "direct" = this Worker sends | "broadcaster" = hand intent to the existing broadcaster
+BROADCASTER_INTENT_URL = ""
+
+# Secrets (wrangler secret put): TOIAF_API_HMAC_SECRET, PROVIDER_API_KEY,
+# X_API_KEY, X_API_SECRET, X_ACCESS_TOKEN, X_ACCESS_SECRET,
+# TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID,
+# BLUESKY_IDENTIFIER, BLUESKY_APP_PASSWORD,
+# BROADCASTER_HMAC_SECRET, ADMIN_NOTIFY_WEBHOOK
