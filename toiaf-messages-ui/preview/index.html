@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TOIAF Messages — UI preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;800;900&family=Azeret+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/toiaf-messages.css">
+<style>
+  /* Preview harness only — approximates the theme shell around the page. */
+  :root { --toiaf-font-heading: 'Orbitron', sans-serif; --toiaf-font-body: 'Azeret Mono', monospace; }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 12px; background: #050308; font-family: var(--toiaf-font-body); }
+  .harness { max-width: 1280px; margin: 0 auto; }
+  .harness__bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+  .harness__bar h1 { margin: 0 auto 0 0; font: 800 13px/1 var(--toiaf-font-heading); letter-spacing: .2em; color: #fff; }
+  .harness__bar button { min-height: 34px; padding: 0 12px; border: 1px solid rgba(255,255,255,.16); border-radius: 999px; background: #16141f; color: rgba(255,255,255,.74); font: 700 9px/1 var(--toiaf-font-heading); letter-spacing: .14em; cursor: pointer; }
+  .harness__bar button[aria-pressed="true"] { border-color: #24f0ff; color: #24f0ff; }
+</style>
+</head>
+<body>
+<div class="harness">
+  <div class="harness__bar">
+    <h1>TOIAF MESSAGES — UI PREVIEW</h1>
+    <button type="button" data-state-demo="locked" aria-pressed="true">Locked</button>
+    <button type="button" data-state-demo="insufficient" aria-pressed="false">Insufficient</button>
+    <button type="button" data-state-demo="unlocking" aria-pressed="false">Unlocking</button>
+    <button type="button" data-state-demo="unlocked" aria-pressed="false">Unlocked</button>
+  </div>
+
+<section class="toiaf-messages-page" aria-label="Messages">
+  <div class="toiaf-messages-header">
+    <h1 class="toiaf-messages-title">MESSAGES</h1>
+    <div class="toiaf-messages-subtitle">Direct messages with your fans</div>
+  </div>
+
+  <div class="toiaf-messages-quicklinks">
+    <a href="#" class="toiaf-msg-qlink"><span class="toiaf-msg-qlink-icon">📤</span><span>Upload</span></a>
+    <a href="#" class="toiaf-msg-qlink"><span class="toiaf-msg-qlink-icon">🎨</span><span>Branding</span></a>
+    <a href="#" class="toiaf-msg-qlink"><span class="toiaf-msg-qlink-icon">💰</span><span>Earnings</span></a>
+    <a href="#" class="toiaf-msg-qlink"><span class="toiaf-msg-qlink-icon">👤</span><span>My profile</span></a>
+    <a href="#" class="toiaf-msg-qlink"><span class="toiaf-msg-qlink-icon">📦</span><span>Customs</span></a>
+  </div>
+
+  <div class="tnm-messages-wrap">
+
+    <!-- ── Inbox ─────────────────────────────────────────────────────── -->
+    <section class="tnm-conversations" id="tnm-inbox" aria-label="Inbox">
+      <div class="tnm-conversations-header">
+        <div>
+          <div class="tnm-conversations-eyebrow">Direct messages</div>
+          <h2>INBOX</h2>
+        </div>
+        <input type="text" class="tnm-conv-search" placeholder="Search" autocomplete="off">
+      </div>
+
+      <ul class="tnm-conversations-list">
+        <li class="tnm-conversation is-active has-unread has-paid" data-presence="online">
+          <a href="#">
+            <span class="tnm-avatar"><img src="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%238e2bff'/%3E%3Ctext x='40' y='52' font-size='30' font-family='sans-serif' fill='%23fff' text-anchor='middle'%3ET%3C/text%3E%3C/svg%3E" alt=""></span>
+            <span class="tnm-meta">
+              <span class="tnm-name">toilet</span>
+              <span class="tnm-role">TOIAF MEMBER</span>
+              <span class="tnm-preview">Paid message sent · 45 TP</span>
+            </span>
+            <span class="tnm-conv-side">
+              <span class="tnm-conv-time">9:16 AM</span>
+              <span class="tnm-conv-unread" data-count="2">2</span>
+            </span>
+          </a>
+        </li>
+
+        <li class="tnm-conversation has-unread" data-presence="online">
+          <a href="#">
+            <span class="tnm-avatar"><img src="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%2324f0ff'/%3E%3Ctext x='40' y='52' font-size='30' font-family='sans-serif' fill='%23000' text-anchor='middle'%3EH%3C/text%3E%3C/svg%3E" alt=""></span>
+            <span class="tnm-meta">
+              <span class="tnm-name">huangtoiletsss</span>
+              <span class="tnm-role">TOIAF MEMBER</span>
+              <span class="tnm-preview">Thanks for the custom 🙏</span>
+            </span>
+            <span class="tnm-conv-side">
+              <span class="tnm-conv-time">6h</span>
+              <span class="tnm-conv-unread" data-count="1">1</span>
+            </span>
+          </a>
+        </li>
+
+        <li class="tnm-conversation" data-presence="away">
+          <a href="#">
+            <span class="tnm-avatar"><img src="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23ff2bd6'/%3E%3Ctext x='40' y='52' font-size='30' font-family='sans-serif' fill='%23fff' text-anchor='middle'%3EM%3C/text%3E%3C/svg%3E" alt=""></span>
+            <span class="tnm-meta">
+              <span class="tnm-name">toiafmodel</span>
+              <span class="tnm-role" data-role="model">TOIAF MODEL</span>
+              <span class="tnm-preview">Paid message sent</span>
+            </span>
+            <span class="tnm-conv-side"><span class="tnm-conv-time">2w</span></span>
+          </a>
+        </li>
+
+        <li class="tnm-conversation" data-presence="offline">
+          <a href="#">
+            <span class="tnm-avatar"><img src="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23b6ff00'/%3E%3Ctext x='40' y='52' font-size='30' font-family='sans-serif' fill='%23000' text-anchor='middle'%3EH%3C/text%3E%3C/svg%3E" alt=""></span>
+            <span class="tnm-meta">
+              <span class="tnm-name">Habiscus Lemonae</span>
+              <span class="tnm-role" data-role="model">TOIAF MODEL</span>
+              <span class="tnm-preview">Open message thread</span>
+            </span>
+            <span class="tnm-conv-side"><span class="tnm-conv-time">New</span></span>
+          </a>
+        </li>
+
+        <li class="tnm-conversation" data-presence="offline">
+          <a href="#">
+            <span class="tnm-avatar"><img src="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23ff8531'/%3E%3Ctext x='40' y='52' font-size='30' font-family='sans-serif' fill='%23000' text-anchor='middle'%3EX%3C/text%3E%3C/svg%3E" alt=""></span>
+            <span class="tnm-meta">
+              <span class="tnm-name">XTRA.LRG.SWEETTEA</span>
+              <span class="tnm-role" data-role="model">TOIAF MODEL</span>
+              <span class="tnm-preview">Open message thread</span>
+            </span>
+            <span class="tnm-conv-side">
+              <span class="tnm-conv-time">New</span>
+              <span class="tnm-conv-blocked-chip">MUTED</span>
+            </span>
+          </a>
+        </li>
+      </ul>
+    </section>
+
+    <!-- ── Thread ────────────────────────────────────────────────────── -->
+    <section class="tnm-thread" aria-label="Conversation thread">
+      <header class="tnm-thread-header" data-presence="online">
+        <div class="tnm-thread-avatar"><img src="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%238e2bff'/%3E%3Ctext x='40' y='52' font-size='30' font-family='sans-serif' fill='%23fff' text-anchor='middle'%3ET%3C/text%3E%3C/svg%3E" alt=""></div>
+        <div class="tnm-thread-meta">
+          <div class="tnm-thread-name">toilet</div>
+          <div class="tnm-thread-status">TOIAF MEMBER · ACTIVE NOW</div>
+        </div>
+        <div class="tnm-thread-actions">
+          <a class="tnm-wallet-chip" href="#">
+            <span class="tnm-wallet-chip__amount">120</span>
+            <span class="tnm-wallet-chip__unit">TP</span>
+          </a>
+          <a class="tnm-thread-action-btn tip-btn-header" href="#">Add TP</a>
+          <a class="tnm-thread-action-btn tnm-inbox-jump" href="#tnm-inbox">Inbox</a>
+          <a class="tnm-thread-action-btn" href="#">Profile</a>
+          <details class="tnm-thread-more">
+            <summary aria-label="More conversation actions">⋮</summary>
+            <div class="tnm-thread-more__menu">
+              <a href="#">Ladies room</a>
+              <a href="#">Order custom</a>
+              <a href="#">Creator perks</a>
+              <a href="#">Report / block</a>
+            </div>
+          </details>
+        </div>
+      </header>
+
+      <div class="tnm-thread-messages">
+        <div class="tnm-date-chip">Yesterday</div>
+
+        <article class="tnm-message tnm-incoming is-group-start">
+          <div class="tnm-message-bubble">
+            <div class="tnm-message-text">hey, saw the new drop on your feed 👀</div>
+          </div>
+        </article>
+
+        <article class="tnm-message tnm-incoming is-group-end">
+          <div class="tnm-message-bubble">
+            <div class="tnm-message-text">anything for me today?</div>
+          </div>
+          <div class="tnm-message-meta">
+            <span class="tnm-message-time">9:02 AM</span>
+          </div>
+        </article>
+
+        <article class="tnm-message tnm-outgoing is-group-start is-group-end">
+          <div class="tnm-message-bubble">
+            <div class="tnm-message-text">Just uploaded something for you. Locked 🔒</div>
+          </div>
+          <div class="tnm-message-meta">
+            <span class="tnm-message-time">9:14 AM</span>
+            <span class="tnm-message-status" data-status="read">READ</span>
+          </div>
+        </article>
+
+        <div class="tnm-date-chip">Today</div>
+
+        <!-- The paywall, incoming (buyer's view) -->
+        <article class="tnm-message tnm-incoming is-group-start is-group-end is-locked">
+          <div class="tnm-message-bubble">
+            <div class="tnm-message-text">Something special, just for you.</div>
+
+            <div class="tnm-paywall" data-tnm-paywall data-state="locked"
+                 data-message-id="1858" data-price="45" data-balance="120">
+              <div class="tnm-paywall__media">
+                <img class="tnm-paywall__blur" alt="" aria-hidden="true"
+                     src="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23ff2bd6'/%3E%3Cstop offset='.5' stop-color='%238e2bff'/%3E%3Cstop offset='1' stop-color='%2324f0ff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='400' height='300' fill='url(%23g)'/%3E%3Ccircle cx='150' cy='120' r='70' fill='%23ffff33' opacity='.55'/%3E%3Ccircle cx='270' cy='200' r='90' fill='%23b6ff00' opacity='.35'/%3E%3C/svg%3E">
+              </div>
+              <div class="tnm-paywall__panel">
+                <span class="tnm-paywall__badge">LOCKED</span>
+                <span class="tnm-paywall__kind">Video · 2:14</span>
+                <div class="tnm-paywall__price"><b>45</b><em>TP</em></div>
+                <form class="tnm-unlock-form" method="post" onsubmit="return false">
+                  <button class="tnm-paywall__cta" data-action="unlock" type="submit">Unlock for 45 TP</button>
+                </form>
+                <p class="tnm-paywall__balance">Balance <b>120 TP</b></p>
+                <p class="tnm-paywall__status" role="status" aria-live="polite"></p>
+              </div>
+            </div>
+
+            <div class="tnm-message-meta">
+              <span class="tnm-message-time">12:22 AM</span>
+              <span class="tnm-message-lock-flag">🔒 PAID</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- Already-unlocked item -->
+        <article class="tnm-message tnm-outgoing is-group-start is-group-end">
+          <div class="tnm-message-bubble">
+            <div class="tnm-message-text">Here's the one you unlocked earlier 💜</div>
+            <figure class="tnm-unlocked-media">
+              <img alt="Unlocked media"
+                   src="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 220'%3E%3Cdefs%3E%3ClinearGradient id='h' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23b6ff00'/%3E%3Cstop offset='1' stop-color='%2324f0ff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='400' height='220' fill='url(%23h)'/%3E%3C/svg%3E">
+              <figcaption>TOIAF · NFTOI · FC356A6EE4</figcaption>
+            </figure>
+            <a class="tnm-message-attachment" href="#">
+              <span>Protected video</span>
+              <small>NFTOI protected · watch-only</small>
+            </a>
+            <div class="tnm-message-meta">
+              <span class="tnm-message-time">12:24 AM</span>
+              <span class="tnm-message-status" data-status="read">READ</span>
+              <span class="tnm-message-lock-flag">🔓 UNLOCKED</span>
+            </div>
+          </div>
+        </article>
+
+        <div class="tnm-typing" aria-label="toilet is typing"><span></span><span></span><span></span></div>
+      </div>
+
+      <form class="tnm-thread-compose" method="post" onsubmit="return false">
+        <div class="tnm-compose-tray" hidden>
+          <button class="tnm-attach-btn" type="button">📎 Attach</button>
+          <button class="tnm-gif-btn" type="button">GIF</button>
+          <button class="tnm-emoji-btn" type="button">😊 Emoji</button>
+          <button class="tnm-price-btn" type="button">💰 Set price</button>
+        </div>
+
+        <div class="tnm-paid-offer" hidden>
+          <span class="tnm-paid-label">🔒 Locked message</span>
+          <label class="tnm-lock-toggle"><input type="checkbox" checked> Blur preview</label>
+          <span class="tnm-cost-input">
+            <input type="number" min="1" step="1" value="45" aria-label="Price in TP">
+            <span class="tnm-cost-unit">TP</span>
+          </span>
+          <button class="tnm-paid-clear" type="button" aria-label="Remove price">✕</button>
+        </div>
+
+        <div class="tnm-compose-row tnm-compose-row--primary">
+          <button class="tnm-tool-toggle" type="button" data-tnm-tool-toggle aria-expanded="false" aria-label="Add media, GIF or price">+</button>
+          <textarea class="tnm-compose-textarea" rows="1" maxlength="1000" placeholder="Write your message"></textarea>
+          <button class="tnm-send-button" type="submit">Send</button>
+        </div>
+
+        <div class="tnm-compose-meta">
+          <span class="tnm-char-count">0/1000</span>
+          <span class="tnm-compose-hint">Enter to send · Shift+Enter for a new line</span>
+        </div>
+      </form>
+    </section>
+  </div>
+</section>
+</div>
+
+<script src="../assets/js/toiaf-messages.js"></script>
+<script>
+// Preview-only: flip the paywall through its states.
+document.querySelectorAll('[data-state-demo]').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    var state = btn.getAttribute('data-state-demo');
+    document.querySelectorAll('[data-state-demo]').forEach(function (b) {
+      b.setAttribute('aria-pressed', String(b === btn));
+    });
+    var card = document.querySelector('.tnm-paywall');
+    card.setAttribute('data-state', state);
+    var cta = card.querySelector('.tnm-paywall__cta');
+    var status = card.querySelector('.tnm-paywall__status');
+    var labels = {
+      locked:       ['Unlock for 45 TP', '', '120 TP'],
+      insufficient: ['Get TP', 'You need 41 more TP.', '4 TP'],
+      unlocking:    ['Unlocking', '', '120 TP'],
+      unlocked:     ['Unlock for 45 TP', '', '120 TP']
+    };
+    cta.textContent = labels[state][0];
+    status.textContent = labels[state][1];
+    card.querySelector('.tnm-paywall__balance b').textContent = labels[state][2];
+    document.querySelector('.tnm-wallet-chip__amount').textContent = labels[state][2].split(' ')[0];
+    var msg = card.closest('.tnm-message');
+    var flag = msg.querySelector('.tnm-message-lock-flag');
+    var done = state === 'unlocked';
+    msg.classList.toggle('is-locked', !done);
+    flag.textContent = done ? '🔓 UNLOCKED' : '🔒 PAID';
+    flag.classList.toggle('is-unlocked', done);
+  });
+});
+</script>
+</body>
+</html>
