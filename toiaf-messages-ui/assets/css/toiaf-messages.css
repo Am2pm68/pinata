@@ -66,14 +66,15 @@
   /* Rhythm */
   --tnm-gap: 14px;
   --tnm-pad: 16px;
-  --tnm-rail: 300px;
+  --tnm-rail: 320px;
 
   --tnm-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
 
   display: flex;
   flex-direction: column;
-  /* Fills the panel but never forces a 720px floor onto short viewports */
-  height: clamp(520px, calc(100dvh - 24px), 1100px);
+  /* Fits between the topbar and the viewport floor, so the page never
+     produces a second scrollbar behind the thread's own. */
+  height: clamp(520px, calc(100dvh - var(--toiaf-topbar-h, 72px) - 28px), 1200px);
   min-height: 0;
   overflow: hidden;
   border: 1px solid var(--tnm-line-strong);
@@ -617,7 +618,9 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: 18px var(--tnm-pad) 22px;
+  /* Past ~980px the thread stops stretching and centres instead, so messages
+     never strand against opposite edges of a very wide pane. */
+  padding: 18px max(var(--tnm-pad), (100% - 980px) / 2) 22px;
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
@@ -1190,7 +1193,8 @@
   bottom: 0;
   z-index: 4;
   flex-shrink: 0;
-  padding: 12px var(--tnm-pad);
+  /* Same centring as the message list, so the composer stays under it. */
+  padding: 12px max(var(--tnm-pad), (100% - 980px) / 2);
   padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
   border-top: 1px solid var(--tnm-line);
   background: linear-gradient(180deg, rgba(8, 7, 12, 0.92), var(--tnm-s0));
@@ -1606,4 +1610,120 @@
   clip: rect(0 0 0 0);
   white-space: nowrap;
   border: 0;
+}
+
+/* ==========================================================================
+   13. PAGE SHELL — give the messenger room
+   Scoped to body.toiaf-messages, which the theme already sets. Nothing here
+   touches any other page.
+   ========================================================================== */
+
+/*
+ * The theme pins the main column to a fixed 600px between a 300px nav and a
+ * 300px widget rail, inside a 1200px shell:
+ *
+ *   grid-template-columns: 300px minmax(0, 600px) 300px;  max-width: 1200px;
+ *
+ * A two-pane messenger cannot live in 600px — that is the real constraint,
+ * more than the widgets themselves. On this page the widget rail goes and
+ * main takes everything left over.
+ *
+ * The theme's own `.no-right-panel` variant is deliberately not reused: it
+ * resolves to calc(600px + 300px), which would re-cap the column. These rules
+ * carry one extra class so they win outright, and this file loads after
+ * 99-overrides.css so the tie-break goes the right way regardless.
+ */
+body.toiaf-messages.logged-in:not(.toiaf-auth) #toiaf-app-shell,
+body.toiaf-messages.logged-in:not(.toiaf-auth).no-right-panel #toiaf-app-shell {
+  grid-template-columns: var(--toiaf-layout-leftnav) minmax(0, 1fr);
+  max-width: min(1800px, 100%);
+}
+
+body.toiaf-messages.logged-in:not(.toiaf-auth) #toiaf-right-panel { display: none; }
+
+body.toiaf-messages.logged-in:not(.toiaf-auth) #toiaf-main-panel { overflow: visible; }
+
+/* The shell's default 24px/48px vertical padding pushes the page past the
+   fold. The messenger manages its own internal scrolling, so it needs almost
+   none of it. */
+body.toiaf-messages.logged-in:not(.toiaf-auth) #toiaf-main-panel .toiaf-main-inner {
+  padding: 12px 14px 14px;
+}
+
+/* Optional full-bleed: the toggle in the messages header adds this class and
+   remembers the choice. Default stays nav-visible. */
+body.toiaf-messages.tnm-nav-collapsed.logged-in:not(.toiaf-auth) #toiaf-app-shell,
+body.toiaf-messages.tnm-nav-collapsed.logged-in:not(.toiaf-auth).no-right-panel #toiaf-app-shell {
+  grid-template-columns: minmax(0, 1fr);
+}
+body.toiaf-messages.tnm-nav-collapsed.logged-in:not(.toiaf-auth) #toiaf-leftnav { display: none; }
+
+/* --- Header and quicklinks share one bar once there is width for it ------ */
+@media (min-width: 1100px) {
+  .toiaf-messages-page {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+  .toiaf-messages-page .toiaf-messages-header {
+    grid-column: 1;
+    grid-row: 1;
+    border-bottom: 1px solid var(--tnm-line);
+    background: var(--tnm-s1);
+    padding-right: 0;
+  }
+  .toiaf-messages-page .toiaf-messages-quicklinks {
+    grid-column: 2;
+    grid-row: 1;
+    justify-content: flex-end;
+    align-items: center;
+    padding-left: 18px;
+  }
+  .toiaf-messages-page .tnm-messages-wrap { grid-column: 1 / -1; grid-row: 2; }
+}
+
+/* --- Nav toggle (injected by JS, so no template change) ------------------ */
+.toiaf-messages-page .tnm-nav-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  /* The header aligns on the baseline; a 34px control must not. */
+  align-self: center;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  margin-inline-end: 10px;
+  border: 1px solid var(--tnm-line);
+  border-radius: var(--tnm-r-sm);
+  background: var(--tnm-s3);
+  color: var(--tnm-ink-3);
+  cursor: pointer;
+  transition: color 0.16s var(--tnm-ease), border-color 0.16s var(--tnm-ease),
+              background 0.16s var(--tnm-ease);
+}
+@media (min-width: 1100px) {
+  .toiaf-messages-page .tnm-nav-toggle { display: inline-flex; }
+}
+.toiaf-messages-page .tnm-nav-toggle:hover {
+  color: var(--tnm-ink-1);
+  border-color: var(--tnm-line-strong);
+  background: var(--tnm-s4);
+}
+.toiaf-messages-page .tnm-nav-toggle svg { width: 15px; height: 15px; }
+.toiaf-messages-page .tnm-nav-toggle rect { fill: currentColor; }
+/* The left bar dims when the nav is hidden — the icon states what it does */
+.toiaf-messages-page .tnm-nav-toggle .tnm-nav-toggle__rail { opacity: 1; }
+body.tnm-nav-collapsed .toiaf-messages-page .tnm-nav-toggle__rail { opacity: 0.28; }
+body.tnm-nav-collapsed .toiaf-messages-page .tnm-nav-toggle { color: var(--tnm-aqua); border-color: rgba(36, 240, 255, 0.4); }
+
+/* Below the shell's own breakpoint the theme already stacks; just make sure
+   nothing here re-introduces a fixed column. */
+@media (max-width: 900px) {
+  body.toiaf-messages.logged-in:not(.toiaf-auth) #toiaf-app-shell,
+  body.toiaf-messages.logged-in:not(.toiaf-auth).no-right-panel #toiaf-app-shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  body.toiaf-messages.logged-in:not(.toiaf-auth) #toiaf-main-panel .toiaf-main-inner {
+    padding: 8px 8px 10px;
+  }
 }

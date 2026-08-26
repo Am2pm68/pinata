@@ -415,5 +415,53 @@
     });
   }
 
+  /* ------------------------------------------------------ full-bleed nav */
+
+  /*
+   * The left nav is useful but not while you are reading a thread. Inject a
+   * toggle rather than touching the template, and remember the choice.
+   * Storage can throw outright in some contexts, so every access is guarded
+   * and the default (nav visible) survives a failure.
+   */
+  (function navToggle() {
+    var header = page.querySelector('.toiaf-messages-header');
+    var shell = document.getElementById('toiaf-app-shell');
+    if (!header || !shell || !document.getElementById('toiaf-leftnav')) return;
+
+    var KEY = 'toiaf:messages:nav-collapsed';
+
+    var read = function () {
+      try { return window.localStorage.getItem(KEY) === '1'; } catch (e) { return false; }
+    };
+    var write = function (v) {
+      try { window.localStorage.setItem(KEY, v ? '1' : '0'); } catch (e) { /* private mode */ }
+    };
+
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'tnm-nav-toggle';
+    btn.innerHTML =
+      '<svg viewBox="0 0 15 15" aria-hidden="true">' +
+      '<rect class="tnm-nav-toggle__rail" x="0" y="1" width="4" height="13" rx="1"></rect>' +
+      '<rect x="6" y="1" width="9" height="13" rx="1" opacity=".45"></rect>' +
+      '</svg>';
+
+    var apply = function (collapsed) {
+      document.body.classList.toggle('tnm-nav-collapsed', collapsed);
+      btn.setAttribute('aria-pressed', String(collapsed));
+      btn.setAttribute('aria-label', collapsed ? 'Show navigation' : 'Hide navigation');
+      btn.title = collapsed ? 'Show navigation' : 'Hide navigation';
+    };
+
+    apply(read());
+    header.insertBefore(btn, header.firstChild);
+
+    btn.addEventListener('click', function () {
+      var next = !document.body.classList.contains('tnm-nav-collapsed');
+      apply(next);
+      write(next);
+    });
+  })();
+
   paintBalance();
 })();

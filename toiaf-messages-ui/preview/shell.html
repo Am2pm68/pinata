@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TOIAF Messages — shell width check</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;800;900&family=Azeret+Mono:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+/* ── Reproduction of the theme shell, lifted from the live page's
+      toiaf-layout-system.css so the override can be checked honestly. ───── */
+:root{
+  --toiaf-font-heading:'Orbitron',sans-serif; --toiaf-font-body:'Azeret Mono',monospace;
+  --toiaf-shell-max:1200px; --toiaf-layout-leftnav:300px; --toiaf-layout-main:600px;
+  --toiaf-layout-right-sidebar:300px; --toiaf-layout-column-gap:0px;
+  --toiaf-topbar-h:72px; --toiaf-border-soft:rgba(142,43,255,.18);
+}
+*{box-sizing:border-box}
+body{margin:0;background:#000;font-family:var(--toiaf-font-body);color:#fff}
+#toiaf-topbar{height:var(--toiaf-topbar-h);display:flex;align-items:center;gap:14px;
+  padding:0 18px;border-bottom:1px solid var(--toiaf-border-soft);background:#08070c}
+#toiaf-topbar b{font:800 12px/1 var(--toiaf-font-heading);letter-spacing:.2em}
+#toiaf-topbar .probe{margin-left:auto;font-size:11px;color:#b6ff00}
+
+body.logged-in:not(.toiaf-auth) #toiaf-app-shell{
+  display:grid;
+  grid-template-columns:var(--toiaf-layout-leftnav) minmax(0,var(--toiaf-layout-main)) var(--toiaf-layout-right-sidebar);
+  gap:var(--toiaf-layout-column-gap);align-items:start;width:100%;
+  max-width:var(--toiaf-shell-max);margin:0 auto;
+  min-height:calc(100vh - var(--toiaf-topbar-h));
+}
+body.logged-in:not(.toiaf-auth) #toiaf-leftnav{
+  width:var(--toiaf-layout-leftnav);background:linear-gradient(rgba(10,10,18,.98),rgba(4,4,8,.98)),#000;
+  border-right:1px solid var(--toiaf-border-soft);align-self:stretch;padding:20px 12px}
+body.logged-in:not(.toiaf-auth) #toiaf-right-panel{
+  width:var(--toiaf-layout-right-sidebar);background:linear-gradient(rgba(8,8,14,.98),rgba(3,3,7,.98)),#000;
+  border-left:1px solid var(--toiaf-border-soft);align-self:stretch;padding:14px}
+#toiaf-main-panel{min-width:0;overflow:hidden}
+#toiaf-main-panel .toiaf-main-inner{max-width:none;margin:0 auto;padding:24px 14px 48px}
+
+.nav-item{display:flex;align-items:center;gap:10px;margin:4px 0;padding:8px 9px;
+  border:1px solid rgba(142,43,255,.35);border-radius:8px;background:rgba(0,0,0,.55);
+  color:rgba(255,255,255,.72);font:700 10px/1 var(--toiaf-font-heading);letter-spacing:.06em}
+.nav-label{font:800 8px/1 var(--toiaf-font-heading);letter-spacing:.2em;color:#ff8531;padding:14px 10px 6px}
+.w{margin-bottom:12px;padding:16px;border:1px solid var(--toiaf-border-soft);border-radius:16px;
+  background:linear-gradient(rgba(10,10,18,.98),rgba(4,4,8,.98))}
+.w h4{margin:0 0 10px;font:800 11px/1.3 var(--toiaf-font-heading);letter-spacing:.14em;color:#ffff33}
+.w p{margin:0;font-size:11px;line-height:1.6;color:rgba(255,255,255,.5)}
+.w.dupe{border-color:rgba(255,133,49,.5)}
+.w.dupe h4{color:#ff8531}
+
+.bar{position:sticky;top:0;z-index:50;display:flex;gap:8px;align-items:center;flex-wrap:wrap;
+  padding:10px 18px;background:#0c0a13;border-bottom:1px solid rgba(255,255,255,.1)}
+.bar span.k{font:700 8px/1 var(--toiaf-font-heading);letter-spacing:.2em;color:rgba(255,255,255,.4)}
+.bar button{min-height:32px;padding:0 12px;border:1px solid rgba(255,255,255,.14);border-radius:999px;
+  background:transparent;color:rgba(255,255,255,.7);font:700 9px/1 var(--toiaf-font-heading);
+  letter-spacing:.14em;cursor:pointer}
+.bar button[aria-pressed="true"]{background:#24f0ff;border-color:#24f0ff;color:#050308}
+</style>
+<link rel="stylesheet" href="../assets/css/toiaf-messages.css">
+</head>
+<body class="home blog logged-in wp-theme-topnotch-toiaf-network toiaf-messages user-is-creator">
+
+<div class="bar">
+  <span class="k">SHELL</span>
+  <button type="button" id="btn-before" aria-pressed="false">Theme default</button>
+  <button type="button" id="btn-after"  aria-pressed="true">Messages override</button>
+  <span class="k" style="margin-left:14px">MAIN COLUMN</span>
+  <strong id="probe" style="font-size:12px;color:#b6ff00"></strong>
+</div>
+
+<div id="toiaf-topbar"><b>TOIAF NETWORK</b></div>
+
+<div id="toiaf-app-shell">
+  <nav id="toiaf-leftnav">
+    <div class="nav-label">NAVIGATE</div>
+    <div class="nav-item">🏠 HOME</div>
+    <div class="nav-item">📺 TOILETFEED</div>
+    <div class="nav-item">💬 MESSAGES</div>
+    <div class="nav-item">💎 RICH GIRLS</div>
+    <div class="nav-label">NPN</div>
+    <div class="nav-item">🔥 MILFS</div>
+  </nav>
+
+  <main id="toiaf-main-panel">
+    <div class="toiaf-main-inner toiaf-messages-main">
+      <!-- messages UI is injected here from index.html so there is one source of truth -->
+    </div>
+  </main>
+
+  <div id="toiaf-right-panel">
+    <div class="w"><h4>MY PROFILE</h4><p>TP balance · followers · subscribers</p></div>
+    <div class="w"><h4>EARNINGS SNAPSHOT</h4><p>Today · 7D · 30D</p></div>
+    <div class="w"><h4>CREATOR TOOLS</h4><p>Uploads · dashboard · feed</p></div>
+    <div class="w"><h4>LADIES ROOM</h4><p>Status · rate · bookings</p></div>
+    <div class="w"><h4>TOIAF AFFILIATE</h4><p>Referral links</p></div>
+    <div class="w dupe"><h4>MESSAGES</h4><p>&ldquo;OPEN MESSAGES →&rdquo; — on the messages page.</p></div>
+  </div>
+</div>
+
+<script>
+// Pull the messages markup from index.html so both previews stay in sync.
+fetch('index.html').then(function (r) { return r.text(); }).then(function (html) {
+  var doc = new DOMParser().parseFromString(html, 'text/html');
+  var ui = doc.querySelector('.toiaf-messages-page');
+  document.querySelector('.toiaf-main-inner').appendChild(document.importNode(ui, true));
+  return import('../assets/js/toiaf-messages.js').catch(function () {
+    var s = document.createElement('script');
+    s.src = '../assets/js/toiaf-messages.js';
+    document.body.appendChild(s);
+  });
+}).then(probe);
+
+var before = document.getElementById('btn-before');
+var after  = document.getElementById('btn-after');
+
+function setMode(useOverride) {
+  // "Theme default" reverts by disabling only the shell rules, via a marker
+  // class the override selectors require.
+  document.body.classList.toggle('toiaf-messages', useOverride);
+  before.setAttribute('aria-pressed', String(!useOverride));
+  after.setAttribute('aria-pressed', String(useOverride));
+  requestAnimationFrame(probe);
+}
+before.addEventListener('click', function () { setMode(false); });
+after.addEventListener('click', function () { setMode(true); });
+
+function probe() {
+  var m = document.getElementById('toiaf-main-panel');
+  document.getElementById('probe').textContent = Math.round(m.getBoundingClientRect().width) + 'px';
+}
+window.addEventListener('resize', probe);
+setTimeout(probe, 400);
+</script>
+</body>
+</html>
