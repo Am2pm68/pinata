@@ -193,7 +193,7 @@ constraint in this document.
 | Need | Tool | Notes |
 | --- | --- | --- |
 | Face detection | **CenterFace** via [`deface`](https://github.com/ORB-HD/deface) | ~2 MB ONNX model, CPU-viable, blur / solid / mosaic / image filters, re-encodes with ffmpeg and re-muxes audio |
-| Selective blur (keep the creator) | **YOLO11 person detection + TorchReID re-identification**, as in [`deface-with-selective-face-blurring`](https://github.com/mitsoul/deface-with-selective-face-blurring) | This is the piece that distinguishes "blur everyone" from "blur everyone except her" |
+| Match against the face allowlist | **ArcFace / InsightFace embeddings** compared to a two-person enrolled gallery | Closed-set recognition, not open-set tracking — see §3.4. [`deface-with-selective-face-blurring`](https://github.com/mitsoul/deface-with-selective-face-blurring) is a useful reference for wiring selective blur into `deface`, but its person re-ID approach is heavier than this problem needs |
 | Shot / scene detection | PySceneDetect | Deterministic cut points |
 | Cut, transition, watermark, encode | ffmpeg (`xfade`, `overlay`, `concat`) | Deterministic and inspectable — no model in the render path |
 
@@ -203,7 +203,58 @@ Gate 1 above, and this pipeline would be sending them the *unblurred master* —
 the one asset that must never leave your control. Self-hosting removes both
 problems at once. CenterFace is small enough that this is not a hard call.
 
-### 3.4 Where it runs
+### 3.4 The face allowlist
+
+**Confirmed:** exactly two performers may appear unblurred.
+
+| Performer | Status |
+| --- | --- |
+| `GoddessBearDonk` | face visible |
+| `Xtra.lrg.Sweet.Tea` | face visible |
+| **everyone else, without exception** | **blurred** |
+
+This is a closed set, and that changes the engineering for the better. "Blur
+everyone except the person we are following" is open-set re-identification —
+track an unknown subject across a clip and hope the track survives occlusion,
+turns and cuts. "These two named identities stay, everything else blurs" is
+recognition against a gallery of two: embed every detected face, compare it to
+the enrolled references, keep it only on a confident match. No tracking to lose,
+and each frame is decided on its own evidence.
+
+**Default deny.** The comparison runs at a *high* match threshold, and anything
+that is not a confident match to an enrolled performer is blurred — including
+faces the matcher is merely unsure about, faces at bad angles, motion-blurred
+faces, and faces too small to embed reliably. The asymmetry is the whole point:
+
+- a wrongly blurred allowlisted performer costs a re-run,
+- a wrongly unblurred bystander is an irreversible harm to a real person.
+
+Tune the threshold against the second failure, never the first. Expect to blur
+some frames of GoddessBearDonk and Xtra.lrg.Sweet.Tea in profile or at distance;
+that is the system working correctly, and the reviewer can request a re-run at a
+looser threshold for a specific clip if the loss is unacceptable.
+
+**Enrollment.** Each allowlisted performer needs a small reference set — a
+handful of clear, varied stills (angles, lighting, with and without makeup or
+accessories that recur in their material). Store the *embeddings*, and treat the
+reference images as protected material under the same rules as masters. Never
+pin them, never attach them to a post.
+
+**The allowlist is a consent record.** It is the artifact that says these two
+people agreed to be identifiable and nobody else did, so it needs the handling a
+consent record gets:
+
+- an owner who can add or remove an entry, and nobody else;
+- a date on every entry, and on every change;
+- a revocation path — removing a performer must trigger review of derivatives
+  already published with their face visible, not merely change future renders;
+- versioning, so a derivative records *which* version of the allowlist produced
+  it. A clip rendered before a revocation is not automatically compliant after one.
+
+Bind the allowlist version into `derivative_jobs.recipe_version` (§3.7) so this
+is answerable from the row rather than from memory.
+
+### 3.5 Where it runs
 
 Not in a Worker — Workers cannot do this, and shouldn't.
 
@@ -213,12 +264,12 @@ Not in a Worker — Workers cannot do this, and shouldn't.
 | **GPU VM** (any provider) | ~10–20× faster detection. Worth it at ToiletFeed back-catalogue volume; adds a box to secure and an egress path from R2 |
 | **Local workstation** | Fine for the first batch. Zero infrastructure, no upload of masters, but does not scale and does not audit |
 
-Recommendation: prototype locally on real Gemmikakes footage to tune thresholds
-and confirm selective blur actually holds on her material, then move the settled
-pipeline to a GPU VM if throughput demands it. Do not build the distributed
+Recommendation: prototype locally on real ToiletFeed footage to tune the match
+threshold and confirm the allowlist holds across a full clip, then move the
+settled pipeline to a GPU VM if throughput demands it. Do not build the distributed
 version first — the tuning is the hard part, and it is unaffected by where it runs.
 
-### 3.5 "AI editing" — scope honestly
+### 3.6 "AI editing" — scope honestly
 
 Two very different asks are hiding in one phrase:
 
@@ -232,7 +283,7 @@ Two very different asks are hiding in one phrase:
 Phase the first, and treat the second as a later experiment with a person still
 holding the cut.
 
-### 3.6 Job model
+### 3.7 Job model
 
 Reuse the pattern already proven in the Worker rather than inventing one:
 
@@ -266,8 +317,9 @@ that skill produces the manifest, this consumes it.
 ## 4. Sequencing
 
 1. **Resolve Gate 1 and Gate 2.** Neither needs code and both can invalidate work.
-2. **Prototype the editor locally** on real footage. Tune thresholds until
-   selective blur holds across a full clip. Nothing else matters until this works.
+2. **Enrol the two allowlisted faces and prototype locally** on real footage.
+   Tune the match threshold until the allowlist holds across a full clip, biased
+   toward over-blur. Nothing else matters until this works.
 3. **Add the review gate and `derivative_jobs`.** Human approval is what promotes
    a derivative to `approved=1`.
 4. **Wire pinning on approval.** Additive schema, one adapter, TOiAF Web3 gateway.
@@ -283,8 +335,12 @@ shaped for.
 
 - Pinata AUP for adult content — blocking, see Gate 1.
 - Immutable vs mutable token metadata — blocking for minting, see Gate 2.
-- Does selective blur need to keep *multiple* named performers visible per clip,
-  or only one? Changes the re-identification setup materially.
-- Is there an existing consent record per performer that the review gate should
-  check against, or is the reviewer's judgement the only record today?
+- ~~How many named performers stay visible?~~ **Answered:** two, closed set —
+  `GoddessBearDonk` and `Xtra.lrg.Sweet.Tea`. See §3.4.
+- Who owns the allowlist, and where does it live so that a change is dated and
+  auditable rather than a message in a chat?
+- Is there a signed consent record behind those two entries, or is the allowlist
+  itself the only record today? If the latter, that gap should close before the
+  first public derivative ships.
+- What happens to already-published derivatives if one of the two revokes?
 - Retention: how long are unblurred masters kept after a derivative is approved?
