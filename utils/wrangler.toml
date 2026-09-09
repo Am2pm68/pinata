@@ -1,0 +1,17 @@
+name = "topnotch-live-streams-api"
+main = "src/index.ts"
+compatibility_date = "2026-09-01"
+
+[observability]
+enabled = true
+
+# Secrets (set via `wrangler secret put <NAME>`, never committed):
+#   PINATA_JWT           - Pinata upload JWT (existing /presigned_url route)
+#   STRIPCASH_API_BASE   - Base URL for the StripCash Models API for aggregators
+#   STRIPCASH_API_KEY    - Bearer token for the StripCash aggregator API
+#
+# Plain vars (safe to commit, override per environment below):
+[vars]
+GATEWAY_URL = ""
+STRIPCASH_MODELS_PATH = ""
+STRIPCASH_BANNED_COUNTRIES = ""
